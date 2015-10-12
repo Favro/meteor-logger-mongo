@@ -30,15 +30,20 @@ function setupPublication() {
 			return;
 		}
 
-		return Logs.find({
+		let selector = {
 			date: {
 				$gte: from,
 			},
-			tag,
 			type: {
 				$in: actions,
 			},
-		});
+		};
+
+		if (tag) {
+			selector.tag = tag;
+		}
+
+		return Logs.find(selector);
 	});
 
 	publicationAlreadySetUp = true;
