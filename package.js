@@ -19,7 +19,7 @@ Package.onUse(function(api) {
 	api.use('insecure', ['client', 'server'], { weak: true });
 
 	api.use([
-		'dburles:mongo-collection-instances',
+		'dburles:mongo-collection-instances@0.3.4',
 	]);
 
 	api.addFiles('lib/logger-mongo.js');
