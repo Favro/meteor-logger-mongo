@@ -49,7 +49,7 @@ Logger.enable = function enable(options = {}) {
 			observer = Logs.find().observeChanges({
 				added(id, fields) {
 					if (showTag && fields.tag) {
-						console[fields.type]('Server console:', fields.tag, ...fields.data);
+						console[fields.type](`Server console (${fields.tag}):`, ...fields.data);
 					} else {
 						console[fields.type]('Server console:', ...fields.data);
 					}
