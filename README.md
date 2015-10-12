@@ -24,4 +24,4 @@ Logger.disable();
 
 ## Options
 
-Coming soon.
+Documentation coming soon.
