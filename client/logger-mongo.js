@@ -6,7 +6,7 @@ Logger.enable = function enable(options = {}) {
 	_.defaults(options, { from: new Date() }, defaultOptions);
 
 	let { actions, collection, } = options;
-	const { auth, from, showTag, tag, } = options;
+	const { from, showTag, tag, } = options;
 
 	if (Match.test(collection, String)) {
 		collection = {
@@ -14,12 +14,12 @@ Logger.enable = function enable(options = {}) {
 		};
 	}
 
-	if (!Logs || Logs._name !== collection._name) {
+	this.disable();
 
+	if (!Logs || Logs._name !== collection._name) {
 		Logs = Mongo.Collection.get(collection._name);
 
 		if (!Logs) {
-
 			if (Match.test(collection, Mongo.Collection)) {
 				Logs = collection;
 			} else {
@@ -34,53 +34,44 @@ Logger.enable = function enable(options = {}) {
 
 	actions = _.intersection(actions, supportedActions);
 
-	if (observer) {
-		observer.stop();
-	}
-
-	if (computation) {
-		computation.stop();
-	}
-
-	if (subscription) {
-		subscription.stop();
-	}
-
-	subscription = Meteor.subscribe(collection._name, {
+	subscription = Meteor.subscribe('hansoft.logger.logs', {
 		actions,
 		from,
 		tag,
 	});
 
+	// Don't observe until subscription's ready. This prevents old data being
+	// logged when running enable with new options.
+	// Client cache isn't cleared before new observer is set up if we don't wait
+	// for subscription to be ready, resulting in logging old data.
 	computation = Meteor.autorun(() => {
 		if (subscription.ready()) {
 			observer = Logs.find().observeChanges({
 				added(id, fields) {
-					const args = fields.data.map((arg) => {
-						try {
-							return EJSON.parse(arg);
-						} catch (error) {
-							if (error instanceof SyntaxError) {
-								return arg;
-							}
-						}
-					});
 					if (showTag && fields.tag) {
-						console[fields.type]('Server console:', fields.tag, ...args);
+						console[fields.type]('Server console:', fields.tag, ...fields.data);
 					} else {
-						console[fields.type]('Server console:', ...args);
+						console[fields.type]('Server console:', ...fields.data);
 					}
-
-				}
+				},
 			});
 		}
 	});
 }
 
 Logger.disable = function disable() {
-	observer.stop();
-	subscription.stop();
-	computation.stop();
+	if (observer) {
+		observer.stop();
+		observer = undefined;
+	}
 
-	Logs = undefined;
+	if (subscription) {
+		subscription.stop();
+		subscription = undefined;
+	}
+
+	if (computation) {
+		computation.stop();
+		computation = undefined;
+	}
 }
