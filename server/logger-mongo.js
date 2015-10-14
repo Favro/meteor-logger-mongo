@@ -1,6 +1,7 @@
 const originalConsoleActions = {};
 let auth;
 let publicationAlreadySetUp = false;
+let Fiber = Npm.require('fibers');
 
 function setupPublication() {
 	if (publicationAlreadySetUp) {
@@ -101,30 +102,38 @@ Logger.enable = function enable(options = {}) {
 		}
 
 		console[action] = function(...args) {
-			originalConsoleActions[action].apply(console, args);
+			function applyAction() {
+				originalConsoleActions[action].apply(console, args);
 
-			let log = {
-				date: new Date(),
-				data: args,
-				type: action,
-			};
+				let log = {
+					date: new Date(),
+					data: args,
+					type: action,
+				};
 
-			if (tag) {
-				log.tag = tag;
+				if (tag) {
+					log.tag = tag;
+				}
+
+				Logs.insert(log, (error, result) => {
+					if (error instanceof RangeError) {
+						log.data = 'Object has circular references. Object was ignored.';
+						Logs.insert(log, (error, result) => {
+							if(error) {
+								originalConsoleActions.error.call(console, error);
+							}
+						});
+					} else if (error) {
+						originalConsoleActions.error.call(console, error);
+					}
+				});
 			}
 
-			Logs.insert(log, (error, result) => {
-				if (error instanceof RangeError) {
-					log.data = 'Object has circular references. Object was ignored.';
-					Logs.insert(log, (error, result) => {
-						if(error) {
-							originalConsoleActions.error.call(console, error);
-						}
-					});
-				} else if (error) {
-					originalConsoleActions.error.call(console, error);
-				}
-			});
+			if (Fiber.current) {
+				applyAction();
+			} else {
+				Fiber(applyAction).run();
+			}
 		};
 	});
 
