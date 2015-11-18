@@ -46,7 +46,24 @@ Logger.enable = function enable(options = {}) {
 	// for subscription to be ready, resulting in logging old data.
 	computation = Meteor.autorun(() => {
 		if (subscription.ready()) {
-			observer = Logs.find().observeChanges({
+			const selector = {
+				date: {
+					$gte: from,
+				},
+				type: {
+					$in: actions,
+				},
+			};
+
+			if (tag) {
+				selector.tag = tag;
+			}
+
+			observer = Logs.find(selector, {
+				sort: {
+					date: 1,
+				},
+			}).observeChanges({
 				added(id, fields) {
 					if (showTag && fields.tag) {
 						console[fields.type](`Server console (${fields.tag}):`, ...fields.data);
