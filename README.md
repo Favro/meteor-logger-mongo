@@ -1,7 +1,7 @@
 # Mongo Logger
 
-All `console.<error/info/log/warn>` are stored in MongoDB. You also get a
-convenience client-side logger which shows the stored logs in the client's
+All server-side `console.<error/info/log/warn>` are stored in MongoDB. You also
+get a convenience client-side logger which shows the stored logs in the client's
 console.
 
 ## Install
