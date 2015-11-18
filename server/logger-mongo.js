@@ -31,7 +31,7 @@ function setupPublication() {
 			return;
 		}
 
-		let selector = {
+		const selector = {
 			date: {
 				$gte: from,
 			},
