@@ -2,8 +2,8 @@ Package.describe({
 	documentation: 'README.md',
 	git: 'https://github.com/hansoft/meteor-logger-mongo.git',
 	name: 'hansoft:logger-mongo',
-	summary: 'Store console.<log/warn/error> in mongodb.',
-	version: '1.0.2',
+	summary: 'Store console.<error/info/log/warn> in mongodb.',
+	version: '1.0.3',
 });
 
 Package.onUse(function(api) {
